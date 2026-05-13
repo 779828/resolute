@@ -25,7 +25,10 @@ let connectionPromise: Promise<typeof mongoose> | null = null;
 const ensureDBConnected = async () => {
   if (mongoose.connection.readyState === 1) return;
   if (!connectionPromise) {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/resolute';
+    const MONGODB_URI = process.env.MONGODB_URI;
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
     connectionPromise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
       serverSelectionTimeoutMS: 10000,

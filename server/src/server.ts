@@ -5,7 +5,6 @@ import app from './app';
 
 const PORT = process.env.PORT || 5000;
 
-// Start server (only in non-serverless environments)
 if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
@@ -13,5 +12,4 @@ if (process.env.VERCEL !== '1') {
   });
 }
 
-// Export for Vercel serverless
 export default app;

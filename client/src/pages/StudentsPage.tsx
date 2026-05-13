@@ -22,6 +22,7 @@ const StudentsPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -45,17 +46,22 @@ const StudentsPage: React.FC = () => {
   }, []);
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+    setDeleteTarget({ id, name });
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const response = await axios.delete(`${API_URL}/student/${id}`);
+      const response = await axios.delete(`${API_URL}/student/${deleteTarget.id}`);
       if (response.data.success) {
-        setStudents(students.filter((s) => s._id !== id));
+        setStudents(students.filter((s) => s._id !== deleteTarget.id));
         setMessage('Student deleted successfully');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch {
       setMessage('Failed to delete student');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -181,6 +187,37 @@ const StudentsPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-card-foreground">Delete Student</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Are you sure you want to delete <span className="font-medium text-card-foreground">"{deleteTarget.name}"</span>? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-all hover:opacity-90"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

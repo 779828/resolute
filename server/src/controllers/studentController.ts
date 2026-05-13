@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import Student, { IStudent } from '../models/Student';
 import { encryptLevel2, decryptLevel2 } from '../utils/crypto';
 
-// Fields to encrypt (sensitive data)
 const ENCRYPTED_FIELDS: (keyof Pick<IStudent, 'fullName' | 'email' | 'phoneNumber' | 'dateOfBirth' | 'address' | 'password'>)[] = [
   'fullName',
   'email',
@@ -12,9 +11,7 @@ const ENCRYPTED_FIELDS: (keyof Pick<IStudent, 'fullName' | 'email' | 'phoneNumbe
   'password',
 ];
 
-/**
- * Encrypt sensitive fields with Level 2 encryption before storing
- */
+
 function encryptStudentData(data: Record<string, any>): Record<string, any> {
   const encrypted = { ...data };
   for (const field of ENCRYPTED_FIELDS) {
@@ -25,10 +22,7 @@ function encryptStudentData(data: Record<string, any>): Record<string, any> {
   return encrypted;
 }
 
-/**
- * Decrypt sensitive fields (Level 2 only) before sending to frontend
- * Frontend still needs to decrypt Level 1
- */
+
 function decryptStudentData(student: Record<string, any>): Record<string, any> {
   const decrypted = { ...student };
   for (const field of ENCRYPTED_FIELDS) {
@@ -44,9 +38,7 @@ function decryptStudentData(student: Record<string, any>): Record<string, any> {
   return decrypted;
 }
 
-/**
- * POST /api/register - Create a new student
- */
+
 export const createStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const studentData = req.body;
@@ -78,14 +70,11 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-/**
- * GET /api/students - Get all students
- */
+
 export const getStudents = async (_req: Request, res: Response): Promise<void> => {
   try {
     const students = await Student.find().lean();
 
-    // Decrypt Level 2 before sending (frontend will decrypt Level 1)
     const decryptedStudents = students.map((student) => {
       const obj = decryptStudentData(student as Record<string, any>);
       return {
@@ -115,15 +104,13 @@ export const getStudents = async (_req: Request, res: Response): Promise<void> =
   }
 };
 
-/**
- * PATCH /api/student/:id - Update a student (partial update)
- */
+
 export const updateStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Apply Level 2 encryption to updated fields
+
     const encryptedData = encryptStudentData(updateData);
 
     const updatedStudent = await Student.findByIdAndUpdate(id, encryptedData, {
@@ -152,9 +139,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-/**
- * DELETE /api/student/:id - Delete a student
- */
+
 export const deleteStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -182,9 +167,7 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-/**
- * POST /api/login - Login student
- */
+
 export const loginStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -197,7 +180,7 @@ export const loginStudent = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Encrypt the provided email to match against stored encrypted email
+
     const encryptedEmail = encryptLevel2(email);
 
     const student = await Student.findOne({ email: encryptedEmail }).lean();
@@ -210,7 +193,6 @@ export const loginStudent = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Encrypt the provided password to compare with stored
     const encryptedPassword = encryptLevel2(password);
 
     if (student.password !== encryptedPassword) {
