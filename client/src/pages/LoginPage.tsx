@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import { encryptLevel1, decryptLevel1 } from '../utils/crypto';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -13,7 +14,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const validate = (): boolean => {
@@ -38,12 +38,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: '' });
-    setMessage('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
 
     if (!validate()) return;
 
@@ -58,6 +56,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
       if (response.data.success) {
         const userData = response.data.data;
+        toast.success('Login successful');
         onLoginSuccess({
           id: userData.id,
           fullName: decryptLevel1(userData.fullName),
@@ -66,7 +65,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       }
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || 'Login failed. Please try again.';
-      setMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -75,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-xl">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
@@ -86,12 +85,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <h1 className="text-2xl font-bold text-card-foreground">Welcome Back</h1>
             <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
           </div>
-
-          {message && (
-            <div className="mb-6 rounded-lg bg-destructive/10 px-4 py-3 text-center text-sm font-medium text-destructive">
-              {message}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

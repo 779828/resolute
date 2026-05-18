@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -47,13 +48,14 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-background">
+        <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
         <Navbar
           isLoggedIn={!!loggedInUser}
           userName={loggedInUser?.fullName}
           onLogout={handleLogoutClick}
         />
 
-        <main className="mx-auto max-w-6xl px-6 py-10">
+        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
           <Routes>
             <Route
               path="/"
@@ -78,7 +80,7 @@ const App: React.FC = () => {
             <Route
               path="/students"
               element={
-                loggedInUser ? <StudentsPage /> : <Navigate to="/login" replace />
+                loggedInUser ? <StudentsPage currentUserId={loggedInUser.id} onAccountDeleted={confirmLogout} /> : <Navigate to="/login" replace />
               }
             />
             <Route

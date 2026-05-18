@@ -2,12 +2,14 @@ import { Request, Response } from 'express';
 import Student, { IStudent } from '../models/Student';
 import { encryptLevel2, decryptLevel2 } from '../utils/crypto';
 
-const ENCRYPTED_FIELDS: (keyof Pick<IStudent, 'fullName' | 'email' | 'phoneNumber' | 'dateOfBirth' | 'address' | 'password'>)[] = [
+const ENCRYPTED_FIELDS: (keyof Pick<IStudent, 'fullName' | 'email' | 'phoneNumber' | 'dateOfBirth' | 'gender' | 'address' | 'courseEnrolled' | 'password'>)[] = [
   'fullName',
   'email',
   'phoneNumber',
   'dateOfBirth',
+  'gender',
   'address',
+  'courseEnrolled',
   'password',
 ];
 
@@ -86,6 +88,7 @@ export const getStudents = async (_req: Request, res: Response): Promise<void> =
         gender: obj.gender,
         address: obj.address,
         courseEnrolled: obj.courseEnrolled,
+        password: obj.password,
         createdAt: student.createdAt,
         updatedAt: student.updatedAt,
       };
@@ -131,6 +134,13 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       message: 'Student updated successfully',
     });
   } catch (error: any) {
+    if (error.code === 11000) {
+      res.status(400).json({
+        success: false,
+        message: 'Email already exists',
+      });
+      return;
+    }
     res.status(500).json({
       success: false,
       message: 'Error updating student',

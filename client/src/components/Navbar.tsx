@@ -35,8 +35,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userName, onLogout }) => {
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md relative">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 no-underline">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
@@ -145,7 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userName, onLogout }) => {
 
       {/* Mobile menu */}
       {isLoggedIn && mobileMenuOpen && (
-        <div className="border-t border-border bg-card px-6 py-3 sm:hidden">
+        <div className="absolute left-0 right-0 top-full z-50 border-t border-border bg-card px-4 py-3 shadow-lg sm:hidden sm:px-6">
           <div className="flex flex-col gap-2">
             <Link to="/students" onClick={() => setMobileMenuOpen(false)} className={navLinkClasses('/students')}>
               Students

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import { encryptStudentData } from '../utils/crypto';
 import CustomSelect from '../components/CustomSelect';
 import CustomDatePicker from '../components/CustomDatePicker';
@@ -35,7 +36,6 @@ const EditStudentPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   if (!student) {
@@ -84,18 +84,15 @@ const EditStudentPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: '' });
-    setMessage('');
   };
 
   const handleCustomChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
     setErrors({ ...errors, [name]: '' });
-    setMessage('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
 
     if (!validate()) return;
 
@@ -111,11 +108,11 @@ const EditStudentPage: React.FC = () => {
       const encryptedData = encryptStudentData(dataToSend);
 
       await axios.patch(`${API_URL}/student/${student._id}`, encryptedData);
-      setMessage('Student updated successfully!');
+      toast.success('Student updated successfully!');
       setTimeout(() => navigate('/students'), 1500);
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || 'Update failed. Please try again.';
-      setMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -126,7 +123,7 @@ const EditStudentPage: React.FC = () => {
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-2xl">
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-xl">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/30">
@@ -137,18 +134,6 @@ const EditStudentPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-card-foreground">Edit Student</h1>
             <p className="mt-1 text-sm text-muted-foreground">Update information for {student.fullName}</p>
           </div>
-
-          {message && (
-            <div
-              className={`mb-6 rounded-lg px-4 py-3 text-center text-sm font-medium ${
-                message.includes('successfully')
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-destructive/10 text-destructive'
-              }`}
-            >
-              {message}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Full Name */}

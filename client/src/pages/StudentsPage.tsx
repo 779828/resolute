@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import { decryptStudentData } from '../utils/crypto';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -17,11 +18,15 @@ interface Student {
   createdAt: string;
 }
 
-const StudentsPage: React.FC = () => {
+interface StudentsPageProps {
+  currentUserId: string;
+  onAccountDeleted: () => void;
+}
+
+const StudentsPage: React.FC<StudentsPageProps> = ({ currentUserId, onAccountDeleted }) => {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const fetchStudents = async () => {
@@ -35,7 +40,7 @@ const StudentsPage: React.FC = () => {
         setStudents(decryptedStudents as Student[]);
       }
     } catch {
-      setMessage('Failed to fetch students');
+      toast.error('Failed to fetch students');
     } finally {
       setLoading(false);
     }
@@ -54,12 +59,17 @@ const StudentsPage: React.FC = () => {
     try {
       const response = await axios.delete(`${API_URL}/student/${deleteTarget.id}`);
       if (response.data.success) {
+        // If the user deleted their own account, log them out
+        if (deleteTarget.id === currentUserId) {
+          toast.success('Your account has been deleted');
+          onAccountDeleted();
+          return;
+        }
         setStudents(students.filter((s) => s._id !== deleteTarget.id));
-        setMessage('Student deleted successfully');
-        setTimeout(() => setMessage(''), 3000);
+        toast.success('Student deleted successfully');
       }
     } catch {
-      setMessage('Failed to delete student');
+      toast.error('Failed to delete student');
     } finally {
       setDeleteTarget(null);
     }
@@ -79,7 +89,7 @@ const StudentsPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-5xl">
       {/* Page Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Student Directory</h1>
           <p className="mt-1 text-muted-foreground">
@@ -96,18 +106,6 @@ const StudentsPage: React.FC = () => {
           Add Student
         </Link>
       </div>
-
-      {message && (
-        <div
-          className={`mb-6 rounded-lg px-4 py-3 text-center text-sm font-medium ${
-            message.includes('successfully')
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-destructive/10 text-destructive'
-          }`}
-        >
-          {message}
-        </div>
-      )}
 
       {students.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-16 text-center shadow-sm">
@@ -130,21 +128,21 @@ const StudentsPage: React.FC = () => {
           {students.map((student) => (
             <div
               key={student._id}
-              className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
+              className="group rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/30 sm:p-6"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4">
                 {/* Student Info */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="text-lg font-bold text-primary">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 sm:h-12 sm:w-12">
+                    <span className="text-base font-bold text-primary sm:text-lg">
                       {student.fullName?.charAt(0)?.toUpperCase() || '?'}
                     </span>
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-card-foreground">{student.fullName}</h3>
-                    <p className="text-sm text-muted-foreground">{student.courseEnrolled}</p>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h3 className="truncate text-base font-semibold text-card-foreground sm:text-lg">{student.fullName}</h3>
+                    <p className="truncate text-sm text-muted-foreground">{student.courseEnrolled}</p>
                     <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2">
-                      <p className="text-sm text-card-foreground">
+                      <p className="truncate text-sm text-card-foreground">
                         <span className="text-muted-foreground">Email: </span>{student.email}
                       </p>
                       <p className="text-sm text-card-foreground">
@@ -164,10 +162,10 @@ const StudentsPage: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 sm:flex-col">
+                <div className="flex gap-2 border-t border-border pt-3 sm:border-0 sm:pt-0 sm:justify-end">
                   <button
                     onClick={() => navigate(`/students/edit/${student._id}`, { state: { student } })}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-all hover:opacity-80"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-all hover:opacity-80 sm:flex-none"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -176,7 +174,7 @@ const StudentsPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => handleDelete(student._id, student.fullName)}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-all hover:opacity-80"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-all hover:opacity-80 sm:flex-none"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

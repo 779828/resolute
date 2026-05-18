@@ -31,7 +31,7 @@ export function decryptLevel1(cipherText: string): string {
 }
 
 export function encryptStudentData(data: Record<string, string>): Record<string, string> {
-  const fieldsToEncrypt = ['fullName', 'email', 'phoneNumber', 'dateOfBirth', 'address', 'password'];
+  const fieldsToEncrypt = ['fullName', 'email', 'phoneNumber', 'dateOfBirth', 'gender', 'address', 'courseEnrolled', 'password'];
   const encrypted: Record<string, string> = { ...data };
 
   for (const field of fieldsToEncrypt) {
@@ -44,7 +44,7 @@ export function encryptStudentData(data: Record<string, string>): Record<string,
 }
 
 export function decryptStudentData(data: Record<string, string>): Record<string, string> {
-  const fieldsToDecrypt = ['fullName', 'email', 'phoneNumber', 'dateOfBirth', 'address'];
+  const fieldsToDecrypt = ['fullName', 'email', 'phoneNumber', 'dateOfBirth', 'gender', 'address', 'courseEnrolled'];
   const decrypted: Record<string, string> = { ...data };
 
   for (const field of fieldsToDecrypt) {
